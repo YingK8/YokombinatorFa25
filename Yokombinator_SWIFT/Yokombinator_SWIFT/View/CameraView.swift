@@ -76,7 +76,7 @@ struct CameraView: UIViewControllerRepresentable {
                     // 9. Call the manager with the prompt and the new base64 image
                     let response = try await openRouterManager.sendMessage(
                         processingPrompt,
-                        base64Images: [base64String]
+                        base64ImgURLs: [base64String]
                     )
                     
                     // 10. Update the UI on the main thread with the result
