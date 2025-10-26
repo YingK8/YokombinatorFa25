@@ -236,3 +236,54 @@ struct ImagePreviewView: View {
         }
     }
 }
+
+
+
+
+
+
+final class MockCameraController: CameraController {
+    override init() {
+        super.init()
+        self.isLoading = false
+        self.error = nil
+        self.activeCameraType = "Back Camera"
+    }
+
+    override func startSession() {
+        // No-op for previews
+    }
+
+    override func stopSession() {
+        // No-op
+    }
+
+    override func capturePhoto(completion: @escaping (UIImage?) -> Void) {
+        completion(UIImage(systemName: "photo"))
+    }
+
+    override func switchCamera() {
+        activeCameraType = (activeCameraType == "Back Camera") ? "Front Camera" : "Back Camera"
+    }
+}
+
+
+#Preview("Normal State") {
+    CameraView()
+}
+
+#Preview("Loading State") {
+    CameraView()
+        .environmentObject(MockCameraController())
+        .onAppear {
+            let mock = MockCameraController()
+            mock.isLoading = true
+        }
+}
+
+#Preview("Error State") {
+    var mock = MockCameraController()
+    mock.error = "Unable to access camera."
+    return CameraView()
+        .environmentObject(mock)
+}
