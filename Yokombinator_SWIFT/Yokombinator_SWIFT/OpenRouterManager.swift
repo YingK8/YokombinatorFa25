@@ -38,7 +38,7 @@ public class OpenRouterManager {
         let requestBody: [String: Any] = [
             "model": "anthropic/claude-haiku-4.5",
             "messages": [["role": "user", "content": content]],
-            "max_tokens": 4096
+            "max_tokens": 2048
         ]
         
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
