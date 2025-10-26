@@ -15,28 +15,16 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Package.swift,
 			);
 			target = A49F319A2EAD38E0001203D3 /* Yokombinator_SWIFT */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		A49F31C12EAD9704001203D3 /* Exceptions for "Yokombinator_SWIFT" folder in "Copy Bundle Resources" phase from "Yokombinator_SWIFT" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = A49F31992EAD38E0001203D3 /* Resources */;
-			membershipExceptions = (
-				Package.swift,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A49F319D2EAD38E0001203D3 /* Yokombinator_SWIFT */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				A49F31AD2EAD38E1001203D3 /* Exceptions for "Yokombinator_SWIFT" folder in "Yokombinator_SWIFT" target */,
-				A49F31C12EAD9704001203D3 /* Exceptions for "Yokombinator_SWIFT" folder in "Copy Bundle Resources" phase from "Yokombinator_SWIFT" target */,
 			);
 			path = Yokombinator_SWIFT;
 			sourceTree = "<group>";
