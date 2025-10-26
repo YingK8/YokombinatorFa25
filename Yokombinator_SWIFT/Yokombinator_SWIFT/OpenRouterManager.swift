@@ -8,7 +8,7 @@ public class OpenRouterManager {
         self.apiKey = apiKey
     }
     
-    public func sendMessage(_ message: String, imagePaths: [String] = []) async throws -> String {
+    public func sendMessage(_ message: String, imagePaths: [String] = [], base64ImgURLs: [String] = []) async throws -> String {
         let url = URL(string: "\(baseURL)/chat/completions")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -26,6 +26,13 @@ public class OpenRouterManager {
                     "image_url": ["url": "data:\(mimeType);base64,\(base64)"]
                 ])
             }
+        }
+        
+        for img_url in base64ImgURLs {
+            content.append([
+                "type": "image_url",
+                "image_url": ["url": img_url]
+            ])
         }
         
         let requestBody: [String: Any] = [
