@@ -100,6 +100,7 @@ class CameraViewController: UIViewController {
             
             // CHANGED: Send the base64 string back to the processor on the main thread
             DispatchQueue.main.async {
+                print(base64String)
                 self.imageProcessor?.process(base64String: base64String)
             }
         }

@@ -39,7 +39,12 @@ struct CameraView: UIViewControllerRepresentable {
         private let openRouterManager: OpenRouterManager
         
         // 2. Add a default prompt for the model
-        private let processingPrompt = "Describe this image in one short sentence."
+        //    (I've removed the formatting instructions from the prompt itself,
+        //    as it's better to ask the model for clean text and then we parse it)
+        private let processingPrompt = """
+        You are a squirrel. Give a short, direct, one-sentence (less than 15 words) reaction to this image.
+        On a new line, give a "squirrel happiness percentage" as a number (e.g., 85%).
+        """
 
         init(_ parent: CameraView) {
             self.parent = parent
@@ -49,7 +54,7 @@ struct CameraView: UIViewControllerRepresentable {
             // --- IMPORTANT ---
             // Replace with your actual API key.
             // For a real app, you should load this from a secure plist or environment variable.
-            let apiKey = "YOUR_OPENROUTER_API_KEY_HERE"
+            let apiKey = "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"
             
             if apiKey == "YOUR_OPENROUTER_API_KEY_HERE" {
                 print("--- WARNING: OpenRouterManager API Key is not set. Please add it in CameraView.swift ---")
@@ -61,9 +66,6 @@ struct CameraView: UIViewControllerRepresentable {
         //    It's called by CameraViewController on the main thread.
         func process(base64String: String) {
             
-            // --- CHANGED ---
-            // We've replaced the simulation with a real network call.
-            
             // 7. Update the UI to show we are processing
             DispatchQueue.main.async {
                 self.parent.processedText = "Processing image..."
@@ -72,25 +74,64 @@ struct CameraView: UIViewControllerRepresentable {
             // 8. Create an async Task to perform the network request
             //    without blocking the main thread.
             Task {
+                var newText: String
                 do {
                     // 9. Call the manager with the prompt and the new base64 image
                     let response = try await openRouterManager.sendMessage(
                         processingPrompt,
+                        imagePaths: [],
                         base64ImgURLs: [base64String]
                     )
                     
-                    // 10. Update the UI on the main thread with the result
-                    DispatchQueue.main.async {
-                        self.parent.processedText = response
-                    }
+                    // --- DEBUGGED ---
+                    // 10. Parse the raw response into a clean string
+                    newText = self.parseSquirrelResponse(response)
+                    
                 } catch {
                     // 11. Handle any errors
                     print("Failed to send message to OpenRouter: \(error)")
-                    DispatchQueue.main.async {
-                        self.parent.processedText = "Error: \(error.localizedDescription)"
-                    }
+                    newText = "Error: \(error.localizedDescription)"
+                }
+                
+                // 12. Update the UI on the main thread with the final result
+                DispatchQueue.main.async {
+                    self.parent.processedText = newText
                 }
             }
+        }
+        
+        /**
+         Parses the AI's response to find the reaction and happiness percentage.
+         */
+        private func parseSquirrelResponse(_ response: String) -> String {
+            // Split the response by new lines
+            let lines = response.split(whereSeparator: \.isNewline)
+            
+            // Simple parsing: assume first non-empty line is the reaction
+            // and the last non-empty line contains the percentage.
+            
+            let reaction = lines.first(where: { !$0.isEmpty })?.trimmingCharacters(in: .whitespaces)
+            let happinessLine = lines.last(where: { !$0.isEmpty })?.trimmingCharacters(in: .whitespaces)
+            
+            // Extract the percentage (e.g., "85%", "Happiness: 90%")
+            let happiness = happinessLine?
+                .components(separatedBy: CharacterSet.decimalDigits.inverted)
+                .joined()
+            
+            // Build the final string
+            var result = ""
+            if let reaction = reaction, !reaction.isEmpty {
+                result += "Squirrel: \"\(reaction)\""
+            } else {
+                // Fallback if parsing fails
+                return response // Return the raw response
+            }
+            
+            if let happiness = happiness, !happiness.isEmpty {
+                result += " (Happiness: \(happiness)%)"
+            }
+            
+            return result
         }
     }
 }

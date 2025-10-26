@@ -1,11 +1,3 @@
-//
-//  OpenRouterManager.swift
-//  Yokombinator_SWIFT
-//
-//  Created by Kakala on 26/10/2025.
-//
-
-
 import Foundation
 
 public class OpenRouterManager {
@@ -39,14 +31,14 @@ public class OpenRouterManager {
         for img_url in base64ImgURLs {
             content.append([
                 "type": "image_url",
-                "image_url": ["url": img_url]
+                "image_url": ["url": "data:image/jpeg;base64,\(img_url)"]
             ])
         }
         
         let requestBody: [String: Any] = [
             "model": "anthropic/claude-haiku-4.5",
             "messages": [["role": "user", "content": content]],
-            "max_tokens": 1024
+            "max_tokens": 2048
         ]
         
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
