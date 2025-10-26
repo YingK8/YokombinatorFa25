@@ -1,6 +1,6 @@
 import Foundation
 
-let claude = OpenRouterManager(apiKey: "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")
+let claude = OpenRouterManager(apiKey: "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")
 
 Task {
     do {
