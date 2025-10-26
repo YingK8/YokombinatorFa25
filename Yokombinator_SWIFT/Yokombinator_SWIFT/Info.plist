@@ -19,8 +19,6 @@
 					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>NSCameraUsageDescription</key>
 					<string>This app needs access to camera to display live feed</string>
-					<key>NSPhotoLibraryAddUsageDescription</key>
-					<string>This app needs access to save generated code snippets</string>
 				</dict>
 			</array>
 		</dict>

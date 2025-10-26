@@ -18,6 +18,9 @@ class H264Encoder: NSObject {
         case cannotPrepareToEncode
     }
     
+    // NEW: A passthrough closure to send the raw buffer to other objects
+    var onRawFrame: ((CMSampleBuffer) -> Void)?
+    
     // MARK: - dependencies
     
     // Make the session optional, as it will be created on the first frame
@@ -224,6 +227,10 @@ extension H264Encoder: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput,
                        didOutput sampleBuffer: CMSampleBuffer,
                        from connection: AVCaptureConnection) {
+        
+        // NEW: Pass the raw frame to any listener
+        // This happens on the videoOutputQueue
+        onRawFrame?(sampleBuffer)
         
         // 1. Setup the session if this is the first frame
         if _session == nil {
