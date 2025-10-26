@@ -15,16 +15,28 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Package.swift,
 			);
 			target = A49F319A2EAD38E0001203D3 /* Yokombinator_SWIFT */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		A49F31C12EAD9704001203D3 /* Exceptions for "Yokombinator_SWIFT" folder in "Copy Bundle Resources" phase from "Yokombinator_SWIFT" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = A49F31992EAD38E0001203D3 /* Resources */;
+			membershipExceptions = (
+				Package.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A49F319D2EAD38E0001203D3 /* Yokombinator_SWIFT */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				A49F31AD2EAD38E1001203D3 /* Exceptions for "Yokombinator_SWIFT" folder in "Yokombinator_SWIFT" target */,
+				A49F31C12EAD9704001203D3 /* Exceptions for "Yokombinator_SWIFT" folder in "Copy Bundle Resources" phase from "Yokombinator_SWIFT" target */,
 			);
 			path = Yokombinator_SWIFT;
 			sourceTree = "<group>";
@@ -107,6 +119,9 @@
 			);
 			mainGroup = A49F31922EAD38E0001203D3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A49F31DD2EADD1CC001203D3 /* XCRemoteSwiftPackageReference "ClaudeCodeSDK" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A49F319C2EAD38E0001203D3 /* Products */;
 			projectDirPath = "";
@@ -341,6 +356,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A49F31DD2EADD1CC001203D3 /* XCRemoteSwiftPackageReference "ClaudeCodeSDK" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jamesrochabrun/ClaudeCodeSDK";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = A49F31932EAD38E0001203D3 /* Project object */;
 }

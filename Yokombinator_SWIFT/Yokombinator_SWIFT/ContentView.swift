@@ -10,12 +10,19 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        CameraView()
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+        TabView {
+            ClaudeCodeGeneratorView()
+                .tabItem {
+                    Image(systemName: "hammer.fill")
+                    Text("Code Gen")
+                }
+            
+            // Your existing camera view
+            CameraView()
+                .tabItem {
+                    Image(systemName: "camera.fill")
+                    Text("Camera")
+                }
+        }
     }
 }
