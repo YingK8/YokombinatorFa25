@@ -36,7 +36,7 @@ class CameraViewController: UIViewController {
     
     // ADDED: 4. Timer logic properties for screenshots
     private var lastCaptureTime: TimeInterval = 0.0
-    private let screenshotInterval: TimeInterval = 10.0 // 10 seconds
+    private let screenshotInterval: TimeInterval = 15.0 // seconds
     
     // ADDED: 5. A CIContext for efficiently converting video frames (CVPixelBuffer) to images
     private let ciContext = CIContext()
