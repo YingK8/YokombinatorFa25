@@ -54,7 +54,7 @@ struct CameraView: UIViewControllerRepresentable {
             // --- IMPORTANT ---
             // Replace with your actual API key.
             // For a real app, you should load this from a secure plist or environment variable.
-            let apiKey = "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"
+            let apiKey = "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"
             
             if apiKey == "YOUR_OPENROUTER_API_KEY_HERE" {
                 print("--- WARNING: OpenRouterManager API Key is not set. Please add it in CameraView.swift ---")
