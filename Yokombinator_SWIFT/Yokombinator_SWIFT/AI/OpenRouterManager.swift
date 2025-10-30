@@ -8,15 +8,20 @@ public class OpenRouterManager {
         self.apiKey = apiKey
     }
     
-    public func sendMessage(_ message: String, imagePaths: [String] = [], base64ImgURLs: [String] = []) async throws -> String {
+    public func sendMessage(_ message: String,
+                            imagePaths: [String] = [],
+                            base64ImgURLs: [String] = []) async throws -> String {
+        
         let url = URL(string: "\(baseURL)/chat/completions")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         
+        // Build content
         var content: [[String: Any]] = [["type": "text", "text": message]]
         
+        // Local images → base64
         for path in imagePaths {
             if let imageData = try? Data(contentsOf: URL(fileURLWithPath: path)),
                let mimeType = getMimeType(for: (path as NSString).pathExtension) {
@@ -28,13 +33,15 @@ public class OpenRouterManager {
             }
         }
         
-        for img_url in base64ImgURLs {
+        // Provided base64 strings
+        for imgURL in base64ImgURLs {
             content.append([
                 "type": "image_url",
-                "image_url": ["url": "data:image/jpeg;base64,\(img_url)"]
+                "image_url": ["url": "data:image/jpeg;base64,\(imgURL)"]
             ])
         }
         
+        // Build request JSON
         let requestBody: [String: Any] = [
             "model": "anthropic/claude-haiku-4.5",
             "messages": [["role": "user", "content": content]],
@@ -42,13 +49,38 @@ public class OpenRouterManager {
         ]
         
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        
+        // Perform request
         let (data, _) = try await URLSession.shared.data(for: request)
-        let response = try JSONDecoder().decode(OpenRouterResponse.self, from: data)
-        return response.choices.first?.message.content ?? "No response"
+        
+        // Debug print
+        if let raw = String(data: data, encoding: .utf8) {
+            print("🔍 Raw OpenRouter response:\n\(raw)")
+        }
+        
+        // Decode flexibly
+        if let openAI = try? JSONDecoder().decode(OpenAIResponse.self, from: data) {
+            return openAI.choices.first?.message.content ?? "No content"
+        } else if let claude = try? JSONDecoder().decode(ClaudeResponse.self, from: data) {
+            if let text = claude.output_text {
+                return text
+            } else if let text = claude.content?.first(where: { $0.text != nil })?.text {
+                return text
+            } else {
+                throw NSError(domain: "OpenRouter", code: 0, userInfo: [
+                    NSLocalizedDescriptionKey: "Claude response missing text content."
+                ])
+            }
+        } else {
+            throw NSError(domain: "OpenRouter", code: 1, userInfo: [
+                NSLocalizedDescriptionKey: "Unknown or malformed response format."
+            ])
+        }
     }
     
-    private func getMimeType(for extension: String) -> String? {
-        switch `extension`.lowercased() {
+    // Helper
+    private func getMimeType(for ext: String) -> String? {
+        switch ext.lowercased() {
         case "jpg", "jpeg": return "image/jpeg"
         case "png": return "image/png"
         case "gif": return "image/gif"
@@ -58,14 +90,22 @@ public class OpenRouterManager {
     }
 }
 
-struct OpenRouterResponse: Codable {
+// MARK: - Response Models
+
+private struct OpenAIResponse: Codable {
+    struct Choice: Codable {
+        struct Message: Codable { let content: String }
+        let message: Message
+    }
     let choices: [Choice]
 }
 
-struct Choice: Codable {
-    let message: Message
-}
-
-struct Message: Codable {
-    let content: String
+private struct ClaudeResponse: Codable {
+    let id: String?
+    let output_text: String?
+    let content: [ContentItem]?
+    struct ContentItem: Codable {
+        let type: String?
+        let text: String?
+    }
 }

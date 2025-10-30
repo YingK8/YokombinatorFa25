@@ -36,7 +36,8 @@ class CameraViewController: UIViewController {
     
     // ADDED: 4. Timer logic properties for screenshots
     private var lastCaptureTime: TimeInterval = 0.0
-    private let screenshotInterval: TimeInterval = 15.0 // seconds
+    private var initialCaptureTime: TimeInterval = 5.0
+    private let screenshotInterval: TimeInterval = 10.0 // seconds
     
     // ADDED: 5. A CIContext for efficiently converting video frames (CVPixelBuffer) to images
     private let ciContext = CIContext()
@@ -68,7 +69,7 @@ class CameraViewController: UIViewController {
         super.viewWillAppear(animated)
         // Reset last capture time to ensure a screenshot isn't taken immediately
         // if the view has been off-screen for a while.
-        lastCaptureTime = CACurrentMediaTime()
+        lastCaptureTime = CACurrentMediaTime() + initialCaptureTime
     }
 
     private func setupPreviewLayer() {
@@ -100,7 +101,7 @@ class CameraViewController: UIViewController {
             
             // CHANGED: Send the base64 string back to the processor on the main thread
             DispatchQueue.main.async {
-                print(base64String)
+//                print(base64String)
                 self.imageProcessor?.process(base64String: base64String)
             }
         }

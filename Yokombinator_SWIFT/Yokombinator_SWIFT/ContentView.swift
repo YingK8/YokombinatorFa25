@@ -1,29 +1,52 @@
 import SwiftUI
 
 struct ContentView: View {
-    // 1. A @State variable to hold the text from the processor
     @State private var overlayText: String = "Waiting for data..."
+    @State private var happiness: Double = 50.0
 
     var body: some View {
-        // 2. A ZStack layers views. Views at the bottom appear in the back.
         ZStack {
-            // 3. The CameraView is our bridge to the UIKit controller.
-            //    We pass the $overlayText binding so it can update our @State.
-            CameraView(processedText: $overlayText)
-                // Makes the camera view fill the entire screen
+            // Camera feed
+            CameraView(processedText: $overlayText, happiness: $happiness)
                 .ignoresSafeArea()
-            
-            // 4. This Text view is layered on top of the camera
+
             VStack {
-                Spacer() // Pushes the text to the bottom
-                Text(overlayText)
-                    .font(.headline)
-                    .padding()
-                    .background(Color.black.opacity(0.6)) // Semi-transparent background
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.bottom, 30) // Add padding from the home bar
+                Spacer()
+
+                HStack(alignment: .center, spacing: 12) {
+                    // Text overlay (pink box)
+                    Text(overlayText)
+                        .font(.headline)
+                        .padding()
+                        .background(Color.pink.opacity(0.6))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .multilineTextAlignment(.leading)
+
+                    // Happiness sprite
+                    Image(spriteName(for: happiness))
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 60, height: 60)
+                        .shadow(radius: 5)
+                        .transition(.opacity)
+                        .animation(.easeInOut(duration: 0.3), value: happiness)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 30)
             }
+        }
+    }
+
+    /// Choose the sprite based on happiness range.
+    func spriteName(for value: Double) -> String {
+        switch value {
+        case 0..<40:
+            return "squirrel_sad"      // 🐿️ sad squirrel
+        case 40..<70:
+            return "squirrel_neutral"  // 😐 neutral squirrel
+        default:
+            return "squirrel_happy"    // 😄 happy squirrel
         }
     }
 }
