@@ -8,12 +8,11 @@
 
 import UIKit
 import AVFoundation
+import MediaPlayer // ADDED: Import MediaPlayer to hide the system volume HUD
 
-// CHANGED: 1. Define a protocol for any object that can process an image.
-// We make it 'AnyObject' so it can be held as a 'weak' reference.
 protocol ImageProcessor: AnyObject {
     /**
-     Called when a new screenshot has been captured (approx. every 10 seconds).
+     Called when a new screenshot has been captured.
      This method will be called on the main thread.
      - Parameters:
        - base64String: The captured screenshot as a base64-encoded JPEG string.
@@ -30,16 +29,32 @@ class CameraViewController: UIViewController {
     // 2. The new UI layer for displaying the video feed
     private var previewLayer: AVCaptureVideoPreviewLayer!
     
-    // CHANGED: 3. A weak reference to an image processor object.
-    // This replaces the 'delegate'.
+    // 3. A weak reference to an image processor object.
     weak var imageProcessor: ImageProcessor?
     
-    // ADDED: 4. Timer logic properties for screenshots
-    private var lastCaptureTime: TimeInterval = 0.0
-    private var initialCaptureTime: TimeInterval = 5.0
-    private let screenshotInterval: TimeInterval = 10.0 // seconds
+    // REMOVED: 4. Timer logic properties
+    // private var lastCaptureTime: TimeInterval = 0.0
+    // private var initialCaptureTime: TimeInterval = 10.0
+    // private let screenshotInterval: TimeInterval = 20.0 // seconds
     
-    // ADDED: 5. A CIContext for efficiently converting video frames (CVPixelBuffer) to images
+    // ADDED: 4. A thread-safe flag to signal a screenshot request
+    private let screenshotLock = NSLock()
+    private var screenshotRequested: Bool = false
+
+    // ADDED: 5. Volume monitoring properties
+    private let audioSession = AVAudioSession.sharedInstance()
+    private var volumeObserver: NSKeyValueObservation?
+    private var initialVolume: Float?
+    private lazy var volumeView: MPVolumeView = {
+        // This view hijacks the system volume UI.
+        // We make it hidden so the user doesn't see a volume slider.
+        let view = MPVolumeView()
+        view.frame = .zero
+        view.clipsToBounds = true
+        return view
+    }()
+    
+    // 5. A CIContext for efficiently converting video frames (CVPixelBuffer) to images
     private let ciContext = CIContext()
 
     override func viewDidLoad() {
@@ -50,12 +65,14 @@ class CameraViewController: UIViewController {
         videoCaptureManager = VideoCaptureManager()
         h264Encoder = H264Encoder()
         
-        // ADDED: 7. Set THIS view controller as the delegate to intercept video frames.
-        // We will then manually forward the frames to the h264Encoder.
+        // 7. Set THIS view controller as the delegate to intercept video frames.
         videoCaptureManager.setVideoOutputDelegate(with: self)
         
         // 8. Setup the preview layer
         setupPreviewLayer()
+        
+        // ADDED: Add the hidden volume view to the hierarchy
+        view.addSubview(volumeView)
     }
     
     override func viewDidLayoutSubviews() {
@@ -64,12 +81,17 @@ class CameraViewController: UIViewController {
         previewLayer?.frame = view.bounds
     }
     
-    // ADDED: 9. Reset the capture time when the view appears
+    // 9. Reset the capture time when the view appears
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Reset last capture time to ensure a screenshot isn't taken immediately
-        // if the view has been off-screen for a while.
-        lastCaptureTime = CACurrentMediaTime() + initialCaptureTime
+        // CHANGED: Removed timer logic, added volume observer setup
+        setupVolumeObserver()
+    }
+    
+    // ADDED: 10. Stop the observer when the view disappears
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopVolumeObserver()
     }
 
     private func setupPreviewLayer() {
@@ -84,27 +106,52 @@ class CameraViewController: UIViewController {
     
     // MARK: - Screenshot Logic
     
+    // REMOVED: The timer-based 'processScreenshot' function is no longer needed.
+    
+    // ADDED: This public function flags that a capture is requested.
     /**
-     Checks if it's time to capture a screenshot and processes it.
-     This is called from the video output queue, not the main thread.
+     Flags that a screenshot should be captured on the next available video frame.
+     This method is thread-safe.
      */
-    private func processScreenshot(from sampleBuffer: CMSampleBuffer) {
-        let currentTime = CACurrentMediaTime()
-        
-        // Check if 10 seconds have passed since the last capture
-        if (currentTime - lastCaptureTime) >= screenshotInterval {
-            // Update the last capture time
-            self.lastCaptureTime = currentTime
-            
-            // CHANGED: Convert the sample buffer to a base64 string
-            guard let base64String = base64StringFromSampleBuffer(sampleBuffer) else { return }
-            
-            // CHANGED: Send the base64 string back to the processor on the main thread
-            DispatchQueue.main.async {
-//                print(base64String)
-                self.imageProcessor?.process(base64String: base64String)
-            }
+    func requestScreenshot() {
+        screenshotLock.lock()
+        screenshotRequested = true
+        screenshotLock.unlock()
+    }
+    
+    // ADDED: Sets up the KVO listener for volume changes
+    private func setupVolumeObserver() {
+        do {
+            // We must activate the audio session to monitor its volume
+            try audioSession.setActive(true)
+        } catch {
+            print("Failed to activate audio session: \(error)")
         }
+        
+        // Store the volume when we start observing
+        initialVolume = audioSession.outputVolume
+        
+        volumeObserver = audioSession.observe(\.outputVolume, options: [.new]) { [weak self] (session, change) in
+            guard let self = self, let newVolume = change.newValue else { return }
+
+            // Check if this is the initial, non-user-driven observation call
+            if let initialVolume = self.initialVolume {
+                self.initialVolume = nil // Clear it so we don't check again
+                if newVolume == initialVolume {
+                    return // It's the initial call, do nothing
+                }
+            }
+            
+            // It's a real volume change, request a screenshot
+            print("Volume change detected, requesting screenshot.")
+            self.requestScreenshot()
+        }
+    }
+    
+    // ADDED: Cleans up the KVO listener
+    private func stopVolumeObserver() {
+        volumeObserver?.invalidate()
+        volumeObserver = nil
     }
     
     /**
@@ -119,7 +166,6 @@ class CameraViewController: UIViewController {
         
         // Create a CIImage from the pixel buffer
         let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-        print("Created CGImage from CIImage!")
         
         // Create a CGImage from the CIImage using the CIContext
         guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else {
@@ -128,7 +174,6 @@ class CameraViewController: UIViewController {
         }
         
         // Create a UIImage from the CGImage to easily convert to Data
-        // This is a convenient intermediate step.
         let uiImage = UIImage(cgImage: cgImage)
         
         // Convert to JPEG data (using 80% compression)
@@ -152,8 +197,29 @@ extension CameraViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         // Forward frame to encoder
         h264Encoder?.captureOutput(output, didOutput: sampleBuffer, from: connection)
         
-        // Handle screenshot logic
-        processScreenshot(from: sampleBuffer)
+        // --- CHANGED: REPLACED TIMER LOGIC WITH FLAG LOGIC ---
+        
+        // Check if a screenshot has been requested
+        screenshotLock.lock()
+        let shouldCapture = self.screenshotRequested
+        screenshotLock.unlock() // Unlock immediately
+        
+        if shouldCapture {
+            // Reset the flag
+            screenshotLock.lock()
+            self.screenshotRequested = false
+            screenshotLock.unlock()
+            
+            // Process the capture.
+            // This is already on a background queue, so it's fine.
+//            print("Thinking...")
+            guard let base64String = base64StringFromSampleBuffer(sampleBuffer) else { return }
+            
+            // Send the base64 string back to the processor on the main thread
+            DispatchQueue.main.async {
+                self.imageProcessor?.process(base64String: base64String)
+            }
+        }
     }
 
     func captureOutput(_ output: AVCaptureOutput,
@@ -164,4 +230,3 @@ extension CameraViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         h264Encoder?.captureOutput(output, didOutput: sampleBuffer, from: connection)
     }
 }
-

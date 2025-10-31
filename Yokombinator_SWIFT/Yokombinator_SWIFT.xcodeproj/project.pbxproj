@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		A49F31AD2EAD38E1001203D3 /* Exceptions for "Yokombinator_SWIFT" folder in "Yokombinator_SWIFT" target */ = {
+		A467C6512EB3F0CE0067E604 /* Exceptions for "Yokombinator_SWIFT" folder in "Yokombinator_SWIFT" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -24,7 +24,7 @@
 		A49F319D2EAD38E0001203D3 /* Yokombinator_SWIFT */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				A49F31AD2EAD38E1001203D3 /* Exceptions for "Yokombinator_SWIFT" folder in "Yokombinator_SWIFT" target */,
+				A467C6512EB3F0CE0067E604 /* Exceptions for "Yokombinator_SWIFT" folder in "Yokombinator_SWIFT" target */,
 			);
 			path = Yokombinator_SWIFT;
 			sourceTree = "<group>";
@@ -151,6 +151,8 @@
 				DEVELOPMENT_TEAM = 8WX9358ARH;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Yokombinator_SWIFT/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to the camera to capture video and display a live preview.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to photo library to save live feed";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -183,6 +185,8 @@
 				DEVELOPMENT_TEAM = 8WX9358ARH;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Yokombinator_SWIFT/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to the camera to capture video and display a live preview.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs access to photo library to save live feed";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
